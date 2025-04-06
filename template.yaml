@@ -76,3 +76,31 @@ Resources:
             RestApiId: !Ref MyApi
             Path: /myresource
             Method: POST
+
+  MyGetLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MyGetLambdaFunction
+      Handler: lambda_handler.handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 10
+      CodeUri: ./lambdas/get_images
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource: !GetAtt MyDynamoDBTable.Arn
+      Events:
+        MyApiGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /myresource
+            Method: GET
+            RequestParameters:
+              'method.request.querystring.date': false
+              'method.request.querystring.name': false

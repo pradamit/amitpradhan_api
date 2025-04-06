@@ -5,7 +5,7 @@ import boto3
 import pytest
 from moto import mock_s3, mock_dynamodb
 
-from lambdas.upload.lambda_handler import handler  # Adjust import according to your module name
+from lambdas.upload.lambda_handler import handler
 
 
 @pytest.fixture(scope='module')
