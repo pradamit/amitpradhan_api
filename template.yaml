@@ -104,3 +104,28 @@ Resources:
             RequestParameters:
               'method.request.querystring.date': false
               'method.request.querystring.name': false
+
+  MyViewLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MyViewLambdaFunction
+      Handler: lambda_handler.handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 10
+      CodeUri: ./lambdas/view_image
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource: !GetAtt MyDynamoDBTable.Arn
+      Events:
+        MyApiGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /myresource/{id}
+            Method: GET
