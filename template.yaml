@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM template for Lambda and API Gateway
+
+Globals:
+  Function:
+    Environment:
+      BUCKET_NAME: user-uploads
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MyLambdaFunction
+      Handler: lambda_handler.handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 10
+      CodeUri: ./lambdas/upload
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        MyApiPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /myresource
+            Method: POST
