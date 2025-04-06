@@ -22,22 +22,23 @@ class InvalidRequest(Exception):
 
 
 def handler(event, context):
+    response = {}
     try:
-        image = event['body']['image']
-        image_name = event['body']['name']
-        image_metadata = event['body']['metadata']
-        time_now = datetime.datetime.now(datetime.timezone.utc)
-        body = base64.b64decode(image)
-    except KeyError as exp:
-        raise InvalidRequest(f'Invalid request. Required field not found {exp}')
-    except Exception as exp:
-        raise InvalidImageFormat(f'Upload failed due to {exp.args[0]}')
+        try:
+            image = event['body']['image']
+            image_name = event['body']['name']
+            image_metadata = event['body']['metadata']
+            time_now = datetime.datetime.now(datetime.timezone.utc)
+            body = base64.b64decode(image)
+        except KeyError as exp:
+            raise InvalidRequest(f'Invalid request. Required field not found {exp}')
+        except Exception as exp:
+            raise InvalidImageFormat(f'Upload failed due to {exp.args[0]}')
 
-    file_name = str(uuid.uuid4())
+        file_name = str(uuid.uuid4())
 
-    s3.put_object(Bucket=BUCKET_NAME, Key=file_name, Body=body)
+        s3.put_object(Bucket=BUCKET_NAME, Key=file_name, Body=body)
 
-    try:
         table.put_item(
             Item={
                 'id': file_name,
@@ -46,12 +47,14 @@ def handler(event, context):
                 'metadata': image_metadata
             }
         )
-    except Exception as exp:
-        raise InvalidImageFormat(f'DynamoDB upload failed due to {exp.args[0]}')
-
-    response = {
-        'statusCode': 200,
-        'body': json.dumps({'message': f'Image uploaded successfully with filename : {file_name}'})
-    }
+        response = {
+            'statusCode': 200,
+            'body': json.dumps({'message': f'Image uploaded successfully with filename : {file_name}'})
+        }
+    except Exception as e:
+        response['statusCode'] = 500
+        response['body'] = {
+            'error': str(e.args[0])
+        }
 
     return response
