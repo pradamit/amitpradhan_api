@@ -40,7 +40,7 @@ def handler(event, context):
     try:
         table.put_item(
             Item={
-                'id': int(file_name.split('-')[0]),
+                'id': file_name,
                 'name': image_name,
                 'createdDateTime': time_now.isoformat(),
                 'metadata': image_metadata

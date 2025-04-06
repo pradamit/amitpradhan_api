@@ -24,7 +24,7 @@ def aws_setup():
             dynamodb.create_table(
                 TableName=table_name,
                 KeySchema=[{'AttributeName': 'id', 'KeyType': 'HASH'}],
-                AttributeDefinitions=[{'AttributeName': 'id', 'AttributeType': 'N'}],
+                AttributeDefinitions=[{'AttributeName': 'id', 'AttributeType': 'S'}],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
 
