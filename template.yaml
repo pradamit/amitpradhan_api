@@ -6,12 +6,50 @@ Globals:
   Function:
     Environment:
       BUCKET_NAME: user-uploads
+      TABLE_NAME: !Ref MyDynamoDBTable
 
 Resources:
   MyApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: prod
+
+  MyDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MyTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: name
+          AttributeType: S
+        - AttributeName: createdDateTime
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      GlobalSecondaryIndexes:
+        - IndexName: NameIndex
+          KeySchema:
+            - AttributeName: name
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      LocalSecondaryIndexes:
+        - IndexName: CreatedDateTimeIndex
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+            - AttributeName: createdDateTime
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
 
   MyLambdaFunction:
     Type: AWS::Serverless::Function
@@ -24,6 +62,13 @@ Resources:
       CodeUri: ./lambdas/upload
       Policies:
         - AWSLambdaBasicExecutionRole
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource: !GetAtt MyDynamoDBTable.Arn
       Events:
         MyApiPost:
           Type: Api
